@@ -1,12 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 
-import 'package:barbero_dormilon/presentation/pages/home/cliente.dart';
+import 'package:barbero_dormilon/presentation/pages/home/filosofo.dart';
+import 'package:barbero_dormilon/presentation/pages/home/fork.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gif/flutter_gif.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:random_avatar/random_avatar.dart';
-import 'package:random_name_generator/random_name_generator.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -15,139 +13,107 @@ class HomePage extends ConsumerStatefulWidget {
   ConsumerState<ConsumerStatefulWidget> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage> {
-  Timer? timer;
-  bool barberoTrabjanado = false;
-  int sillasLibres = 3;
-  List<Cliente> clientes = [];
-  bool isPuause = false;
+class _HomePageState extends ConsumerState<HomePage>
+    with TickerProviderStateMixin {
+  late FlutterGifController controllerComiendo,
+      controllerEsperando,
+      controller3,
+      controller4,
+      controller5;
 
-  int proximoCliente = 6;
-  int tiempoTrabajo = 3;
-  final tiempoTrabajoContante = 3;
-  final random = Random();
-  final int max = 6;
-  final int min = 1;
+  Fork tenedor1 = Fork(color: Colors.orange);
+  Fork tenedor2 = Fork(color: Colors.red);
+  Fork tenedor3 = Fork(color: Colors.blue);
+  Fork tenedor4 = Fork(color: Colors.purple);
+  Fork tenedor5 = Fork(color: Colors.green);
+
+  final List<Filosofo> listaFilosofos = [];
+
+  late Filosofo filosofo1;
+  late Filosofo filosofo2;
+  late Filosofo filosofo3;
+  late Filosofo filosofo4;
+  late Filosofo filosofo5;
 
   @override
   void initState() {
     super.initState();
-    timer = Timer.periodic(
-        const Duration(seconds: 1), (Timer t) => generarProcesos());
+    controllerComiendo = FlutterGifController(vsync: this);
+    controllerEsperando = FlutterGifController(vsync: this);
+
+    filosofo1 = Filosofo(izq: tenedor1, der: tenedor2, init: "izquierdo");
+    filosofo2 = Filosofo(izq: tenedor2, der: tenedor3, init: "derecho");
+    filosofo3 = Filosofo(izq: tenedor3, der: tenedor4, init: "izquierdo");
+    filosofo4 = Filosofo(izq: tenedor4, der: tenedor5, init: "derecho");
+    filosofo5 = Filosofo(izq: tenedor5, der: tenedor1, init: "izquierdo");
+    listaFilosofos.add(filosofo1);
+    listaFilosofos.add(filosofo2);
+    listaFilosofos.add(filosofo3);
+    listaFilosofos.add(filosofo4);
+    listaFilosofos.add(filosofo5);
+
+    controllerComiendo.repeat(
+      min: 244,
+      max: 352,
+      period: const Duration(milliseconds: 3000),
+    );
+
+    controllerEsperando.repeat(
+      min: 0,
+      max: 20,
+      period: const Duration(milliseconds: 1000),
+    );
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      Timer.periodic(
+          const Duration(milliseconds: 99), (Timer t) => setState(() {}));
+      iniciarJuego();
+    });
   }
 
-  void generarProcesos() {
-    if (!isPuause) {
-      barberoTrabjanado = clientes.isNotEmpty;
+  Future<void> iniciarJuego() async {
+    listaFilosofos.shuffle();
 
-      if (tiempoTrabajo == 0) {
-        setState(() {
-          tiempoTrabajo = tiempoTrabajoContante;
-          final cliente = clientes[0];
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: Colors.green.shade900,
-              content: Row(
-                children: [
-                  cliente.image,
-                  const SizedBox(
-                    width: 16,
-                  ),
-                  Text(
-                    'Trabajo finalizado!. ${cliente.name.split(" ")[0]} se fué.',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              duration: const Duration(seconds: 1),
-            ),
-          );
-          clientes.removeAt(0);
-          barberoTrabjanado = clientes.isNotEmpty;
-        });
-      } else {
-        if (barberoTrabjanado) {
-          setState(() {
-            tiempoTrabajo--;
-          });
-        }
-      }
-
-      if (proximoCliente == 0) {
-        setState(() {
-          if (clientes.length < 4) {
-            final name = RandomNames(Zone.spain).name();
-            clientes.add(
-              Cliente(
-                name: name,
-                image: randomAvatar(name, height: 48, width: 48),
-              ),
-            );
-            barberoTrabjanado = true;
-          } else {
-            final name = RandomNames(Zone.spain).name().split(" ")[0];
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.red.shade900,
-                content: Row(
-                  children: [
-                    randomAvatar(name, height: 48, width: 48),
-                    const SizedBox(
-                      width: 16,
-                    ),
-                    Text(
-                      '¡$name se fue por falta de espacio.',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-          }
-          proximoCliente = min + random.nextInt(max - min);
-        });
-      } else {
-        setState(() {
-          proximoCliente--;
-        });
-      }
+    for (var element in listaFilosofos) {
+      element.iniciar();
+      await Future.delayed(const Duration(milliseconds: 333));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFdedede),
       appBar: AppBar(
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
               width: 56,
+              height: 56,
               child: Image.asset(
-                "assets/images/barberpole.png",
+                "assets/images/mesera.png",
+                fit: BoxFit.fitHeight,
               ),
             ),
             const SizedBox(
-              width: 16,
+              width: 32,
             ),
-            const Text('EL BARBERO DORMILÓN'),
+            const Text(
+              'FILÓSOFOS COMENSALES',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(
-              width: 16,
+              width: 32,
             ),
             SizedBox(
               width: 56,
+              height: 56,
               child: Image.asset(
-                "assets/images/barberpole.png",
+                "assets/images/mesera.png",
+                fit: BoxFit.fitHeight,
               ),
             ),
           ],
@@ -156,468 +122,1344 @@ class _HomePageState extends ConsumerState<HomePage> {
       body: InkWell(
         onTap: () {
           setState(() {
-            isPuause = !isPuause;
+            // isPuause = !isPuause;
           });
         },
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 72.0, top: 16),
-                      child: AspectRatio(
-                        aspectRatio: 1,
-                        child: Stack(
-                          fit: StackFit.expand,
+            Image.asset(
+              "assets/images/fondo_final2.png",
+              fit: BoxFit.contain,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 448),
+              child: Center(
+                child: Image.asset(
+                  "assets/images/mesas.png",
+                  height: 188,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 120,
+              ),
+              child: Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
                           children: [
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                top: 144.0,
-                              ),
-                              child: Opacity(
-                                opacity: .7,
-                                child: SvgPicture.asset(
-                                  "assets/images/fondo1.svg",
-                                ),
-                              ),
+                            const SizedBox(
+                              width: 8,
                             ),
-                            Column(
-                              children: [
-                                const SizedBox(
-                                  height: 24,
-                                ),
-                                const Text(
-                                  "Proximo cliente:",
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  "(Número aleatorio de segundos entre $min y $max)",
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                LinearProgressIndicator(
-                                  minHeight: 16,
-                                  value: proximoCliente / max,
-                                ),
-                                const SizedBox(
-                                  height: 32,
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        AspectRatio(
-                                          aspectRatio: 1,
-                                          child: Material(
-                                            color: Colors.white,
-                                            elevation: 8,
-                                            shape: const StadiumBorder(),
-                                            child: Stack(
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          bottom: 16.0,
-                                                          left: 8),
-                                                  child: AnimatedCrossFade(
-                                                    duration: const Duration(
-                                                      milliseconds: 300,
-                                                    ),
-                                                    crossFadeState:
-                                                        clientes.length < 2
-                                                            ? CrossFadeState
-                                                                .showFirst
-                                                            : CrossFadeState
-                                                                .showSecond,
-                                                    firstChild: Image.asset(
-                                                      "assets/images/disponible.png",
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                    secondChild: Image.asset(
-                                                      "assets/images/cliente_esperando.png",
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Align(
-                                                  alignment:
-                                                      Alignment.bottomCenter,
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            bottom: 0.0),
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Text(
-                                                          clientes.length < 2
-                                                              ? "Lugar\nDisponible"
-                                                              : "${clientes[1].name.split(" ")[0]}\nEsperando",
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: clientes
-                                                                        .length <
-                                                                    2
-                                                                ? Colors.green
-                                                                    .shade900
-                                                                : Colors.red
-                                                                    .shade900,
-                                                            fontSize: 10,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 16,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                SizedBox.expand(
-                                                  child: Opacity(
-                                                    opacity: clientes.length > 1
-                                                        ? 1
-                                                        : 0,
-                                                    child:
-                                                        const CircularProgressIndicator(),
-                                                  ),
-                                                ),
-                                                if (clientes.length > 1)
-                                                  clientes[1].image,
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        AspectRatio(
-                                          aspectRatio: 1,
-                                          child: Material(
-                                            color: Colors.white,
-                                            elevation: 8,
-                                            shape: const StadiumBorder(),
-                                            child: Stack(
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          bottom: 16.0,
-                                                          left: 8),
-                                                  child: AnimatedCrossFade(
-                                                    duration: const Duration(
-                                                      milliseconds: 300,
-                                                    ),
-                                                    crossFadeState:
-                                                        clientes.length < 3
-                                                            ? CrossFadeState
-                                                                .showFirst
-                                                            : CrossFadeState
-                                                                .showSecond,
-                                                    firstChild: Image.asset(
-                                                      "assets/images/disponible.png",
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                    secondChild: Image.asset(
-                                                      "assets/images/cliente_esperando.png",
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Align(
-                                                  alignment:
-                                                      Alignment.bottomCenter,
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            bottom: 0.0),
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Text(
-                                                          clientes.length < 3
-                                                              ? "Lugar\nDisponible"
-                                                              : "${clientes[2].name.split(" ")[0]}\nEsperando",
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: clientes
-                                                                        .length <
-                                                                    3
-                                                                ? Colors.green
-                                                                    .shade900
-                                                                : Colors.red
-                                                                    .shade900,
-                                                            fontSize: 10,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 16,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                SizedBox.expand(
-                                                  child: Opacity(
-                                                    opacity: clientes.length > 2
-                                                        ? 1
-                                                        : 0,
-                                                    child:
-                                                        const CircularProgressIndicator(),
-                                                  ),
-                                                ),
-                                                if (clientes.length > 2)
-                                                  clientes[2].image,
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                        AspectRatio(
-                                          aspectRatio: 1,
-                                          child: Material(
-                                            color: Colors.white,
-                                            elevation: 8,
-                                            shape: const StadiumBorder(),
-                                            child: Stack(
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          bottom: 16.0,
-                                                          left: 8),
-                                                  child: AnimatedCrossFade(
-                                                    duration: const Duration(
-                                                      milliseconds: 300,
-                                                    ),
-                                                    crossFadeState:
-                                                        clientes.length < 4
-                                                            ? CrossFadeState
-                                                                .showFirst
-                                                            : CrossFadeState
-                                                                .showSecond,
-                                                    firstChild: Image.asset(
-                                                      "assets/images/disponible.png",
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                    secondChild: Image.asset(
-                                                      "assets/images/cliente_esperando.png",
-                                                      fit: BoxFit.cover,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Align(
-                                                  alignment:
-                                                      Alignment.bottomCenter,
-                                                  child: Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                            bottom: 0.0),
-                                                    child: Column(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Text(
-                                                          clientes.length < 4
-                                                              ? "Lugar\nDisponible"
-                                                              : "${clientes[3].name.split(" ")[0]}\nEsperando",
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            color: clientes
-                                                                        .length <
-                                                                    4
-                                                                ? Colors.green
-                                                                    .shade900
-                                                                : Colors.red
-                                                                    .shade900,
-                                                            fontSize: 10,
-                                                          ),
-                                                        ),
-                                                        const SizedBox(
-                                                          height: 16,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                SizedBox.expand(
-                                                  child: Opacity(
-                                                    opacity: clientes.length > 3
-                                                        ? 1
-                                                        : 0,
-                                                    child:
-                                                        const CircularProgressIndicator(),
-                                                  ),
-                                                ),
-                                                if (clientes.length > 3)
-                                                  clientes[3].image,
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  child: Container(),
-                                ),
-                                Expanded(
-                                  flex: 2,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Expanded(
-                                        flex: 4,
-                                        child: AnimatedCrossFade(
-                                          duration:
-                                              const Duration(milliseconds: 300),
-                                          crossFadeState: barberoTrabjanado
-                                              ? CrossFadeState.showFirst
-                                              : CrossFadeState.showSecond,
-                                          firstChild: AspectRatio(
-                                            aspectRatio: 16 / 9,
-                                            child: Image.asset(
-                                              "assets/images/trabajando.png",
-                                              fit: BoxFit.fitHeight,
-                                            ),
-                                          ),
-                                          secondChild: AspectRatio(
-                                            aspectRatio: 16 / 9,
-                                            child: Image.asset(
-                                              "assets/images/durmiendo.png",
-                                              fit: BoxFit.fitHeight,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: SizedBox(
-                                            height: 56,
-                                            child: barberoTrabjanado
-                                                ? Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: [
-                                                      clientes[0].image,
-                                                      const SizedBox(
-                                                        width: 8,
-                                                      ),
-                                                      Text(
-                                                        "BARBERO TRABAJANDO EN ${clientes[0].name.split(" ")[0].toUpperCase()}...",
-                                                        style: const TextStyle(
-                                                          fontSize: 17,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  )
-                                                : Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
-                                                    children: const [
-                                                      SizedBox(
-                                                        height: 48,
-                                                        width: 48,
-                                                      ),
-                                                      SizedBox(
-                                                        width: 8,
-                                                      ),
-                                                      Text(
-                                                        "BARBERO DURMIENDO...",
-                                                        style: TextStyle(
-                                                          fontSize: 17,
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                          color: Colors.black,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  )),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 32,
-                                ),
-                                const Text(
-                                  "Tiempo de trabajo del Barbero:",
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Text(
-                                  "($tiempoTrabajoContante segundos por cliente)",
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                const SizedBox(
-                                  height: 8,
-                                ),
-                                LinearProgressIndicator(
-                                  color: Colors.orange,
-                                  minHeight: 16,
-                                  value: tiempoTrabajo / 6,
-                                ),
-                                const SizedBox(
-                                  height: 16,
-                                ),
-                              ],
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo1.vecesComio >= 1
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo1.vecesComio >= 2
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo1.vecesComio >= 3
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
                             ),
                           ],
                         ),
-                      ),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo1.vecesComio >= 4
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo1.vecesComio >= 5
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo1.vecesComio >= 6
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Material(
+                          color: Colors.black54,
+                          borderRadius: BorderRadiusDirectional.circular(4),
+                          child: SizedBox(
+                            width: 120,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                filosofo1.mensaje,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        SizedBox(
+                          width: 120,
+                          child: Row(
+                            children: [
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo1.estado == 0
+                                        ? Colors.red
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo1.estado == 1
+                                        ? Colors.yellow
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo1.estado == 2
+                                        ? Colors.green
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 120,
+                          width: 120,
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: GifImage(
+                              controller: filosofo1.mensaje == "Comiendo..."
+                                  ? controllerComiendo
+                                  : controllerEsperando,
+                              image: const AssetImage("assets/images/m6.gif"),
+                            ),
+                          ),
+                        ),
+                        Stack(
+                          children: [
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: AnimatedOpacity(
+                                opacity: filosofo1.tenedorIzquierdo ? 1 : 0,
+                                duration: const Duration(milliseconds: 100),
+                                child: SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: Image.asset(
+                                    "assets/images/fork.png",
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.bottomCenter,
+                                    color: filosofo1.primerTenedor.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -32),
+                              child: Center(
+                                child: AnimatedOpacity(
+                                  opacity: filosofo1.estado == 2 ? 1 : 0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: SizedBox(
+                                    width: 120,
+                                    height: 56,
+                                    child: Image.asset(
+                                      "assets/images/food.png",
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: SizedBox(
+                                width: 120,
+                                child: Align(
+                                  alignment: Alignment.topRight,
+                                  child: AnimatedOpacity(
+                                    opacity: filosofo1.tenedorDerecho ? 1 : 0,
+                                    duration: const Duration(milliseconds: 100),
+                                    child: SizedBox(
+                                      width: 40,
+                                      height: 40,
+                                      child: Image.asset(
+                                        "assets/images/fork.png",
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topRight,
+                                        color: filosofo1.segundoTenedor.color,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo2.vecesComio >= 1
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo2.vecesComio >= 2
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo2.vecesComio >= 3
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo2.vecesComio >= 4
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo2.vecesComio >= 5
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo2.vecesComio >= 6
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Material(
+                          color: Colors.black54,
+                          borderRadius: BorderRadiusDirectional.circular(4),
+                          child: SizedBox(
+                            width: 120,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                filosofo2.mensaje,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        SizedBox(
+                          width: 120,
+                          child: Row(
+                            children: [
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo2.estado == 0
+                                        ? Colors.red
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo2.estado == 1
+                                        ? Colors.yellow
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo2.estado == 2
+                                        ? Colors.green
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 120,
+                          width: 120,
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: GifImage(
+                              controller: filosofo2.mensaje == "Comiendo..."
+                                  ? controllerComiendo
+                                  : controllerEsperando,
+                              image: const AssetImage("assets/images/m5.gif"),
+                            ),
+                          ),
+                        ),
+                        Stack(
+                          children: [
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: AnimatedOpacity(
+                                opacity: filosofo2.tenedorIzquierdo ? 1 : 0,
+                                duration: const Duration(milliseconds: 100),
+                                child: SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: Image.asset(
+                                    "assets/images/fork.png",
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.bottomCenter,
+                                    color: filosofo2.segundoTenedor.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -32),
+                              child: Center(
+                                child: AnimatedOpacity(
+                                  opacity: filosofo2.estado == 2 ? 1 : 0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: SizedBox(
+                                    width: 120,
+                                    height: 56,
+                                    child: Image.asset(
+                                      "assets/images/food.png",
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: SizedBox(
+                                width: 120,
+                                child: Align(
+                                  alignment: Alignment.topRight,
+                                  child: AnimatedOpacity(
+                                    opacity: filosofo2.tenedorDerecho ? 1 : 0,
+                                    duration: const Duration(milliseconds: 100),
+                                    child: SizedBox(
+                                      width: 40,
+                                      height: 40,
+                                      child: Image.asset(
+                                        "assets/images/fork.png",
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topRight,
+                                        color: filosofo2.primerTenedor.color,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      width: 100,
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo3.vecesComio >= 1
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo3.vecesComio >= 2
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo3.vecesComio >= 3
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo3.vecesComio >= 4
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo3.vecesComio >= 5
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo3.vecesComio >= 6
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Material(
+                          color: Colors.black54,
+                          borderRadius: BorderRadiusDirectional.circular(4),
+                          child: SizedBox(
+                            width: 120,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                filosofo3.mensaje,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        SizedBox(
+                          width: 120,
+                          child: Row(
+                            children: [
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo3.estado == 0
+                                        ? Colors.red
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo3.estado == 1
+                                        ? Colors.yellow
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo3.estado == 2
+                                        ? Colors.green
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 120,
+                          width: 120,
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: GifImage(
+                              controller: filosofo3.mensaje == "Comiendo..."
+                                  ? controllerComiendo
+                                  : controllerEsperando,
+                              image: const AssetImage("assets/images/f11.gif"),
+                            ),
+                          ),
+                        ),
+                        Stack(
+                          children: [
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: AnimatedOpacity(
+                                opacity: filosofo3.tenedorIzquierdo ? 1 : 0,
+                                duration: const Duration(milliseconds: 100),
+                                child: SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: Image.asset(
+                                    "assets/images/fork.png",
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.bottomCenter,
+                                    color: filosofo3.primerTenedor.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -32),
+                              child: Center(
+                                child: AnimatedOpacity(
+                                  opacity: filosofo3.estado == 2 ? 1 : 0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: SizedBox(
+                                    width: 120,
+                                    height: 56,
+                                    child: Image.asset(
+                                      "assets/images/food.png",
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: SizedBox(
+                                width: 120,
+                                child: Align(
+                                  alignment: Alignment.topRight,
+                                  child: AnimatedOpacity(
+                                    opacity: filosofo3.tenedorDerecho ? 1 : 0,
+                                    duration: const Duration(milliseconds: 100),
+                                    child: SizedBox(
+                                      width: 40,
+                                      height: 40,
+                                      child: Image.asset(
+                                        "assets/images/fork.png",
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topRight,
+                                        color: filosofo3.segundoTenedor.color,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      width: 100,
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo4.vecesComio >= 1
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo4.vecesComio >= 2
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo4.vecesComio >= 3
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo4.vecesComio >= 4
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo4.vecesComio >= 5
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo4.vecesComio >= 6
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Material(
+                          color: Colors.black54,
+                          borderRadius: BorderRadiusDirectional.circular(4),
+                          child: SizedBox(
+                            width: 120,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                filosofo4.mensaje,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        SizedBox(
+                          width: 120,
+                          child: Row(
+                            children: [
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo4.estado == 0
+                                        ? Colors.red
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo4.estado == 1
+                                        ? Colors.yellow
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo4.estado == 2
+                                        ? Colors.green
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 120,
+                          width: 120,
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: GifImage(
+                              controller: filosofo4.mensaje == "Comiendo..."
+                                  ? controllerComiendo
+                                  : controllerEsperando,
+                              image: const AssetImage("assets/images/m3.gif"),
+                            ),
+                          ),
+                        ),
+                        Stack(
+                          children: [
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: AnimatedOpacity(
+                                opacity: filosofo4.tenedorIzquierdo ? 1 : 0,
+                                duration: const Duration(milliseconds: 100),
+                                child: SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: Image.asset(
+                                    "assets/images/fork.png",
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.bottomCenter,
+                                    color: filosofo4.segundoTenedor.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -32),
+                              child: Center(
+                                child: AnimatedOpacity(
+                                  opacity: filosofo4.estado == 2 ? 1 : 0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: SizedBox(
+                                    width: 120,
+                                    height: 56,
+                                    child: Image.asset(
+                                      "assets/images/food.png",
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: SizedBox(
+                                width: 120,
+                                child: Align(
+                                  alignment: Alignment.topRight,
+                                  child: AnimatedOpacity(
+                                    opacity: filosofo4.tenedorDerecho ? 1 : 0,
+                                    duration: const Duration(milliseconds: 100),
+                                    child: SizedBox(
+                                      width: 40,
+                                      height: 40,
+                                      child: Image.asset(
+                                        "assets/images/fork.png",
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topRight,
+                                        color: filosofo4.primerTenedor.color,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(
+                      width: 16,
+                    ),
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo5.vecesComio >= 1
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo5.vecesComio >= 2
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo5.vecesComio >= 3
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo5.vecesComio >= 4
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo5.vecesComio >= 5
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                            AnimatedCrossFade(
+                              duration: const Duration(milliseconds: 100),
+                              crossFadeState: filosofo5.vecesComio >= 6
+                                  ? CrossFadeState.showSecond
+                                  : CrossFadeState.showFirst,
+                              firstChild:
+                                  Image.asset("assets/images/plato.png"),
+                              secondChild:
+                                  Image.asset("assets/images/ramen.png"),
+                            ),
+                            const SizedBox(
+                              width: 8,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        Material(
+                          color: Colors.black54,
+                          borderRadius: BorderRadiusDirectional.circular(4),
+                          child: SizedBox(
+                            width: 120,
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: Text(
+                                filosofo5.mensaje,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 8,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 8,
+                        ),
+                        SizedBox(
+                          width: 120,
+                          child: Row(
+                            children: [
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo5.estado == 0
+                                        ? Colors.red
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo5.estado == 1
+                                        ? Colors.yellow
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                              Expanded(
+                                child: AspectRatio(
+                                  aspectRatio: 1,
+                                  child: Material(
+                                    color: filosofo5.estado == 2
+                                        ? Colors.green
+                                        : Colors.grey,
+                                    shape: const StadiumBorder(),
+                                    child: const SizedBox(),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(
+                                width: 8,
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(
+                          height: 120,
+                          width: 120,
+                          child: AspectRatio(
+                            aspectRatio: 1,
+                            child: GifImage(
+                              controller: filosofo5.mensaje == "Comiendo..."
+                                  ? controllerComiendo
+                                  : controllerEsperando,
+                              image: const AssetImage("assets/images/m4.gif"),
+                            ),
+                          ),
+                        ),
+                        Stack(
+                          children: [
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: AnimatedOpacity(
+                                opacity: filosofo5.tenedorIzquierdo ? 1 : 0,
+                                duration: const Duration(milliseconds: 100),
+                                child: SizedBox(
+                                  width: 40,
+                                  height: 40,
+                                  child: Image.asset(
+                                    "assets/images/fork.png",
+                                    fit: BoxFit.cover,
+                                    alignment: Alignment.bottomCenter,
+                                    color: filosofo5.primerTenedor.color,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -32),
+                              child: Center(
+                                child: AnimatedOpacity(
+                                  opacity: filosofo5.estado == 2 ? 1 : 0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: SizedBox(
+                                    width: 120,
+                                    height: 56,
+                                    child: Image.asset(
+                                      "assets/images/food.png",
+                                      fit: BoxFit.cover,
+                                      alignment: Alignment.bottomCenter,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Transform.translate(
+                              offset: const Offset(0, -24),
+                              child: SizedBox(
+                                width: 120,
+                                child: Align(
+                                  alignment: Alignment.topRight,
+                                  child: AnimatedOpacity(
+                                    opacity: filosofo5.tenedorDerecho ? 1 : 0,
+                                    duration: const Duration(milliseconds: 100),
+                                    child: SizedBox(
+                                      width: 40,
+                                      height: 40,
+                                      child: Image.asset(
+                                        "assets/images/fork.png",
+                                        fit: BoxFit.cover,
+                                        alignment: Alignment.topRight,
+                                        color: filosofo5.segundoTenedor.color,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
-            if (isPuause)
+            if (filosofo1.vecesComio == 6 &&
+                filosofo2.vecesComio == 6 &&
+                filosofo3.vecesComio == 6 &&
+                filosofo4.vecesComio == 6 &&
+                filosofo5.vecesComio == 6)
               Container(
                 color: Colors.black54,
               ),
-            if (isPuause)
-              const Center(
-                child: Text(
-                  "Pause",
-                  style: TextStyle(
-                    fontSize: 72,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white70,
+            if (filosofo1.vecesComio == 6 &&
+                filosofo2.vecesComio == 6 &&
+                filosofo3.vecesComio == 6 &&
+                filosofo4.vecesComio == 6 &&
+                filosofo5.vecesComio == 6)
+              GestureDetector(
+                onTap: () {
+                  iniciarJuego();
+                },
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: const [
+                      Text(
+                        "Juego terminado",
+                        style: TextStyle(
+                          fontSize: 72,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white70,
+                        ),
+                      ),
+                      Text(
+                        "Presiona para reiniciar",
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white70,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               )
